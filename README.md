@@ -24,7 +24,7 @@ This is a fork of [ruby-rails-template](https://github.com/jaspermayone/ruby-rai
 
 1. Generate unique credentials:
 
-   ```bash
+   ```sh
    bin/regenerate-credentials
    ```
 
@@ -37,13 +37,18 @@ This is a fork of [ruby-rails-template](https://github.com/jaspermayone/ruby-rai
    ```
    
 3. Generate an ARE Key by running
-    ```bash
+    ```sh
     bin/rails db:encryption:init
     ```
 
-4. Add the generated keys to your credentials:
+4. Generate a blind_index key by running
+   ```sh
+   openssl rand -hex 32
+   ```
 
-   ```bash
+5. Add the generated keys to your credentials:
+
+   ```sh
    rails credentials:edit
    ```
 
@@ -58,13 +63,16 @@ This is a fork of [ruby-rails-template](https://github.com/jaspermayone/ruby-rai
 
    lockbox:
      master_key: REPLACEME
+
+   blind_index:
+     master_key: REPLACEME
    ```
 
-5. Replace all instances of "REPLACEMEWITHAPPNAME" with your actual application name.
+6. Replace all instances of "REPLACEMEWITHAPPNAME" with your actual application name.
 
-6. Install dependencies:
+7. Install dependencies:
 
-   ```bash
+   ```sh
    bundle install
    ```
    
