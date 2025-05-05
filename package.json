@@ -5,8 +5,8 @@
   "description": "REPLACEME",
   "maintainers": [
     {
-      "name": "Jasper Mayone",
-      "email": "me@jaspermayone.com"
+      "name": "REPLACEME",
+      "email": "REPLACEME@phish.directory"
     }
   ],
   "scripts": {
@@ -14,7 +14,7 @@
     "start": "bun run start"
   },
   "keywords": [],
-  "author": "Jasper Mayone <me@jaspermayone.com>",
+  "author": "REPLACEME <REPLACEME@phish.directory>",
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.6.2",
     "@hotwired/stimulus": "^3.2.2",
