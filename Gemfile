@@ -41,7 +41,7 @@ gem "geocoder"
 ###############################################################################
 # BACKGROUND PROCESSING & CACHING
 ###############################################################################
-gem "redis"                        
+gem "redis"
 gem "solid_queue"                        # Database-backed Active Job adapter
 gem "solid_cable"                        # Database-backed Action Cable
 gem "mission_control-jobs"               # Job monitoring

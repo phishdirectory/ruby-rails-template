@@ -13,8 +13,8 @@ class User
 
     scope :impersonated, -> { where.not(impersonated_by_id: nil) }
     scope :not_impersonated, -> { where(impersonated_by_id: nil) }
-    scope :expired, -> { where("expiration_at <= ?", Time.now) }
-    scope :not_expired, -> { where("expiration_at > ?", Time.now) }
+    scope :expired, -> { where("expiration_at <= ?", Time.zone.now) }
+    scope :not_expired, -> { where("expiration_at > ?", Time.zone.now) }
     scope :recently_expired_within, ->(date) { expired.where("expiration_at >= ?", date) }
 
     extend Geocoder::Model::ActiveRecord
@@ -30,11 +30,11 @@ class User
     def touch_last_seen_at
       return if last_seen_at&.after? LAST_SEEN_AT_COOLDOWN.ago # prevent spamming writes
 
-      update_columns(last_seen_at: Time.now)
+      update_columns(last_seen_at: Time.zone.now)
     end
 
     def expired?
-      expiration_at <= Time.now
+      expiration_at <= Time.zone.now
     end
 
 
