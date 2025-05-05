@@ -73,7 +73,7 @@ This is a fork of [ruby-rails-template](https://github.com/jaspermayone/ruby-rai
 7. Install dependencies:
 
    ```sh
-   bundle install
+   bundle install && bun install
    ```
    
 ### Next Steps
