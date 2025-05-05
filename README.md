@@ -22,41 +22,52 @@ This is a fork of [ruby-rails-template](https://github.com/jaspermayone/ruby-rai
 
 ### Application Setup
 
-1. **Generate Credentials**
+1. Generate unique credentials:
 
    ```bash
    bin/regenerate-credentials
    ```
 
-2. **Create Lockbox Encryption Key**
+   This creates a secure master key and credentials file specific to your project.
+
+2. Generate a Lockbox encryption key by running in the Rails console:
 
    ```ruby
-   # Run in Rails console
    Lockbox.generate_key
    ```
+   
+3. Generate an ARE Key by running
+    ```bash
+    bin/rails db:encryption:init
+    ```
 
-3. **Add Key to Credentials**
+4. Add the generated keys to your credentials:
 
    ```bash
    rails credentials:edit
    ```
 
-   Then add:
+   Then insert the keys in this format (replace the replaceme's with generated creds):
 
    ```yaml
+
+    active_record_encryption:
+      primary_key: REPLACEME
+      deterministic_key: REPLACEME
+      key_derivation_salt: REPLACEME
+
    lockbox:
-     master_key: "your_generated_key_here"
+     master_key: REPLACEME
    ```
 
-4. **Replace Placeholder Names**
-   Search for and replace all instances of "REPLACEMEWITHAPPNAME" with your application name.
+5. Replace all instances of "REPLACEMEWITHAPPNAME" with your actual application name.
 
-5. **Install Dependencies**
+6. Install dependencies:
 
    ```bash
    bundle install
    ```
-
+   
 ### Next Steps
 
 You're ready to start development! Consider reviewing:
