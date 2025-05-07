@@ -267,7 +267,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_03_171629) do
 
   create_table "user_sessions", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.bigint "impersonated_by_id"
+    t.datetime "last_seen_at"
     t.string "session_token_ciphertext"
     t.string "session_token_bidx"
     t.string "fingerprint"
@@ -277,13 +277,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_03_171629) do
     t.string "timezone"
     t.string "ip"
     t.datetime "expiration_at", null: false
-    t.datetime "last_seen_at"
     t.datetime "signed_out_at"
     t.float "latitude"
     t.float "longitude"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["impersonated_by_id"], name: "index_user_sessions_on_impersonated_by_id"
+    t.index ["user_id", "last_seen_at"], name: "index_user_sessions_on_user_id_and_last_seen_at"
     t.index ["user_id"], name: "index_user_sessions_on_user_id"
   end
 
@@ -312,5 +311,4 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_03_171629) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "user_sessions", "users"
-  add_foreign_key "user_sessions", "users", column: "impersonated_by_id"
 end
