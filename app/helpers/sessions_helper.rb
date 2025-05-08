@@ -125,9 +125,4 @@ module SessionsHelper
                .update_all(signed_out_at: Time.zone.now, expiration_at: Time.zone.now)
   end
 
-  helper_method :current_profile
-  helper_method :current_user_data
-  helper_method :current_session
-  helper_method :current_user_sessions
-
 end
