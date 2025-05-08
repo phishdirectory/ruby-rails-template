@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# app/helpers/sessions_helper.rb
 module SessionsHelper
   SESSION_DURATION_OPTIONS = {
     "1 hour"  => 1.hour.to_i,
@@ -10,21 +11,28 @@ module SessionsHelper
     "30 days" => 30.days.to_i
   }.freeze
 
-  # app/helpers/sessions_helper.rb
-  def sign_in(user:, impersonate: false, fingerprint_info: {})
+  # Modified to work with external auth
+  def sign_in(user_data:, fingerprint_info: {})
     # Generate a secure random token
     session_token = SecureRandom.urlsafe_base64(64)
 
-    # Get the impersonator if this is an impersonation
-    impersonated_by = impersonate ? current_user : nil
+    # Store the pd_id in the session
+    session[:pd_id] = user_data["pd_id"]
 
-    # Set expiration time based on user preferences
-    expiration_at = Time.current + user.session_duration_seconds.seconds
+    # Sync with profile
+    profile = Profile.sync_from_api(user_data)
+
+
+    # Set default session duration (30 days)
+    session_duration = 30.days.to_i
+
+    # Set expiration time
+    expiration_at = Time.current + session_duration
 
     # Create the session in the database
-    session = User::Session.create!(
-      user: user,
-      impersonated_by: impersonated_by,
+    user_session = UserSession.create!(
+      pd_id: user_data["pd_id"],
+      user_data: user_data,
       session_token: session_token,
       expiration_at: expiration_at,
       fingerprint: fingerprint_info[:fingerprint],
@@ -42,45 +50,24 @@ module SessionsHelper
       secure: Rails.env.production?
     }
 
-    # Update the current user
-    self.current_user = user
-
     # Return the session
-    session
-  end
-
-  def impersonate_user(user)
-    sign_out
-    sign_in(user:, impersonate: true)
-  end
-
-  def unimpersonate_user
-    curses = current_session
-    sign_out
-    sign_in(user: curses.impersonated_by)
+    user_session
   end
 
   def require_login
-    return if current_user
+    return if current_session
 
     store_location
     flash[:alert] = "Please log in to access this page."
     redirect_to login_path
-
   end
 
   def store_location
     session[:return_to] = request.original_url if request.get?
   end
 
-  def redirect_back_or(default)
-    redirect_to(session[:return_to] || default)
-    session.delete(:return_to)
-  end
-
-  # Detect if a session is idle for too long
   def session_timeout
-    return unless current_user && current_session
+    return unless current_session
 
     idle_time = 30.minutes
 
@@ -94,75 +81,53 @@ module SessionsHelper
   end
 
   def signed_in?
-    !current_user.nil?
-  end
-
-  def auditor_signed_in?
-    signed_in? && current_user&.auditor?
+    !current_session.nil?
   end
 
   def admin_signed_in?
-    signed_in? && current_user&.admin?
+    signed_in? && (current_user_data["permissions"]["global_access_level"]["value"] >= 1)
   end
 
-  def superadmin_signed_in?
-    signed_in? &&
-      current_user&.superadmin? &&
-      !current_session&.impersonated?
-  end
-
-  def current_user=(user)
-    @current_user = user # rubocop:disable Rails/HelperInstanceVariable
-  end
-
-  def current_user
-    @current_user ||= current_session&.user
+  def current_user_data
+    @current_user_data ||= current_session&.user_data
   end
 
   def current_session
-    return @current_session if defined?(@current_session) # rubocop:disable Rails/HelperInstanceVariable
+    return @current_session if defined?(@current_session)
 
     session_token = cookies.encrypted[:session_token]
-
     return nil if session_token.nil?
 
     # Find a valid session (not expired) using the session token
-    @current_session = UserSession.not_expired.find_by(session_token:) # rubocop:disable Rails/HelperInstanceVariable
+    @current_session = UserSession.not_expired.find_by(session_token: session_token)
   end
 
-  def signed_in_user
-    return if signed_in?
-
-    if request.fullpath == "/"
-      redirect_to auth_users_path
-    else
-      redirect_to auth_users_path(return_to: request.original_url)
-    end
-
+  def current_profile
+    @current_profile ||= Profile.find_by(pd_id: current_session&.pd_id)
   end
 
-  def signed_in_admin
-    return if auditor_signed_in?
-
-    redirect_to auth_users_path, flash: { error: "You’ll need to sign in as an admin." }
-
+  def current_user_sessions
+    UserSession.where(pd_id: current_session&.pd_id).order(created_at: :desc)
   end
 
   def sign_out
-    current_user
-      &.user_sessions
-      &.find_by(session_token: cookies.encrypted[:session_token])
-      &.update(signed_out_at: Time.zone.now, expiration_at: Time.zone.now)
-
+    current_session&.update(signed_out_at: Time.zone.now, expiration_at: Time.zone.now)
     cookies.delete(:session_token)
-    self.current_user = nil
+    session.delete(:pd_id)
+    @current_session = nil
+    @current_user_data = nil
   end
 
-  def sign_out_of_all_sessions(user = current_user)
+  def sign_out_of_all_sessions
     # Destroy all the sessions except the current session
-    user
-      &.user_sessions
-      &.where&.not(id: current_session.id)
-      &.update_all(signed_out_at: Time.zone.now, expiration_at: Time.zone.now)
+    UserSession.where(pd_id: current_session.pd_id)
+               .where.not(id: current_session.id)
+               .update_all(signed_out_at: Time.zone.now, expiration_at: Time.zone.now)
   end
+
+  helper_method :current_profile
+  helper_method :current_user_data
+  helper_method :current_session
+  helper_method :current_user_sessions
+
 end
