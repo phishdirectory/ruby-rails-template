@@ -383,6 +383,8 @@ GEM
     public_suffix (6.0.2)
     puma (6.6.0)
       nio4r (~> 2.0)
+    pundit (2.5.0)
+      activesupport (>= 3.0.0)
     query_count (1.1.1)
       activerecord (>= 4.2)
       railties (>= 4.2)
@@ -641,7 +643,7 @@ PLATFORMS
 DEPENDENCIES
   aasm
   active_storage_validations (= 2.0.3)
-  acts_as_paranoid (~> 0.10.3)
+  acts_as_paranoid
   actual_db_schema
   ahoy_email
   ahoy_matey
@@ -687,6 +689,7 @@ DEPENDENCIES
   premailer-rails
   propshaft
   puma (>= 5.0)
+  pundit
   query_count
   rack-attack
   rack-cors
